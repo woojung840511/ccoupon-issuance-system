@@ -34,10 +34,10 @@ service CouponService {
 }
 
 enum CampaignStatus {
-  CAMPAIGN_STATUS_UNSPECIFIED = 0; // 기본값
-  CAMPAIGN_STATUS_WAITING = 1;     // 대기중
-  CAMPAIGN_STATUS_ACTIVE = 2;      // 진행중
-  CAMPAIGN_STATUS_COMPLETED = 3;   // 완료
+  UNSPECIFIED = 0; // 기본값
+  WAITING = 1;     // 대기중
+  ACTIVE = 2;      // 진행중
+  COMPLETED = 3;   // 완료
 }
 
 message Campaign {

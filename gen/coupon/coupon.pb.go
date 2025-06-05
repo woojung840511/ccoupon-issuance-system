@@ -32,25 +32,25 @@ const (
 type CampaignStatus int32
 
 const (
-	CampaignStatus_CAMPAIGN_STATUS_UNSPECIFIED CampaignStatus = 0 // 기본값
-	CampaignStatus_CAMPAIGN_STATUS_WAITING     CampaignStatus = 1 // 대기중
-	CampaignStatus_CAMPAIGN_STATUS_ACTIVE      CampaignStatus = 2 // 진행중
-	CampaignStatus_CAMPAIGN_STATUS_COMPLETED   CampaignStatus = 3 // 완료
+	CampaignStatus_UNSPECIFIED CampaignStatus = 0 // 기본값
+	CampaignStatus_WAITING     CampaignStatus = 1 // 대기중
+	CampaignStatus_ACTIVE      CampaignStatus = 2 // 진행중
+	CampaignStatus_COMPLETED   CampaignStatus = 3 // 완료
 )
 
 // Enum value maps for CampaignStatus.
 var (
 	CampaignStatus_name = map[int32]string{
-		0: "CAMPAIGN_STATUS_UNSPECIFIED",
-		1: "CAMPAIGN_STATUS_WAITING",
-		2: "CAMPAIGN_STATUS_ACTIVE",
-		3: "CAMPAIGN_STATUS_COMPLETED",
+		0: "UNSPECIFIED",
+		1: "WAITING",
+		2: "ACTIVE",
+		3: "COMPLETED",
 	}
 	CampaignStatus_value = map[string]int32{
-		"CAMPAIGN_STATUS_UNSPECIFIED": 0,
-		"CAMPAIGN_STATUS_WAITING":     1,
-		"CAMPAIGN_STATUS_ACTIVE":      2,
-		"CAMPAIGN_STATUS_COMPLETED":   3,
+		"UNSPECIFIED": 0,
+		"WAITING":     1,
+		"ACTIVE":      2,
+		"COMPLETED":   3,
 	}
 )
 
@@ -163,7 +163,7 @@ func (x *Campaign) GetStatus() CampaignStatus {
 	if x != nil {
 		return x.Status
 	}
-	return CampaignStatus_CAMPAIGN_STATUS_UNSPECIFIED
+	return CampaignStatus_UNSPECIFIED
 }
 
 func (x *Campaign) GetCreatedAt() int64 {
@@ -624,12 +624,13 @@ const file_proto_coupon_proto_rawDesc = "" +
 	"\x06coupon\x18\x02 \x01(\v2\x0e.coupon.CouponR\x06coupon\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x1d\n" +
 	"\n" +
-	"error_code\x18\x04 \x01(\tR\terrorCode*\x89\x01\n" +
-	"\x0eCampaignStatus\x12\x1f\n" +
-	"\x1bCAMPAIGN_STATUS_UNSPECIFIED\x10\x00\x12\x1b\n" +
-	"\x17CAMPAIGN_STATUS_WAITING\x10\x01\x12\x1a\n" +
-	"\x16CAMPAIGN_STATUS_ACTIVE\x10\x02\x12\x1d\n" +
-	"\x19CAMPAIGN_STATUS_COMPLETED\x10\x032\xf0\x01\n" +
+	"error_code\x18\x04 \x01(\tR\terrorCode*I\n" +
+	"\x0eCampaignStatus\x12\x0f\n" +
+	"\vUNSPECIFIED\x10\x00\x12\v\n" +
+	"\aWAITING\x10\x01\x12\n" +
+	"\n" +
+	"\x06ACTIVE\x10\x02\x12\r\n" +
+	"\tCOMPLETED\x10\x032\xf0\x01\n" +
 	"\rCouponService\x12O\n" +
 	"\x0eCreateCampaign\x12\x1d.coupon.CreateCampaignRequest\x1a\x1e.coupon.CreateCampaignResponse\x12F\n" +
 	"\vGetCampaign\x12\x1a.coupon.GetCampaignRequest\x1a\x1b.coupon.GetCampaignResponse\x12F\n" +
