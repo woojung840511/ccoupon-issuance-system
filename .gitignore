@@ -1,0 +1,38 @@
+# Go 관련
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace file
+go.work
+
+# 의존성 다운로드 디렉토리
+/vendor/
+
+# IDE 관련
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS 관련
+.DS_Store
+Thumbs.db
+
+# 환경 변수 파일
+.env
+.env.local
+
+# 빌드 결과물
+/bin/
+/dist/
+
+# 로그 파일
+*.log
+
+# 임시 파일
+/tmp/
