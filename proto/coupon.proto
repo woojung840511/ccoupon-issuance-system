@@ -5,8 +5,20 @@
 // Protocol Buffers 버전
 syntax = "proto3";
 
-// Go 언어로 컴파일될 때 패키지 이름
+// Go 언어로 컴파일될 때 패키지 이름 (import 문에서도 사용)
 option go_package = "coupon-issuance-system/gen/coupon";
+/*
+## 사용한 컴파일 명령어 (명령 위치는 루트)
+protoc --go_out=. --go_opt=module=coupon-issuance-system \
+       --connect-go_out=. --connect-go_opt=module=coupon-issuance-system \
+       proto/coupon.proto
+
+## 생성 위치 계산:
+     --go_out + (go_package 에서 모듈명 제거한 부분, module 옵션 덕분..)
+     = . + gen/coupon
+     = ./gen/coupon/
+
+ */
 
 // 패키지 이름 (다른 proto 파일에서 import할 때 사용)
 package coupon;
