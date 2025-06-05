@@ -1,0 +1,82 @@
+// https://protobuf.dev/
+// https://protobuf.dev/getting-started/gotutorial/
+// https://github.com/protocolbuffers/protobuf/tree/main/examples
+
+// Protocol Buffers 버전
+syntax = "proto3";
+
+// Go 언어로 컴파일될 때 패키지 이름
+option go_package = "coupon-issuance-system/gen/coupon";
+
+// 패키지 이름 (다른 proto 파일에서 import할 때 사용)
+package coupon;
+
+
+// RPC 메서드
+service CouponService {
+  // rpc: 원격 호출할 수 있는 메서드 정의
+  // (요청타입) returns (응답타입) 형식
+  rpc CreateCampaign(CreateCampaignRequest) returns (CreateCampaignResponse);
+  rpc GetCampaign(GetCampaignRequest) returns (GetCampaignResponse);
+  rpc IssueCoupon(IssueCouponRequest) returns (IssueCouponResponse);
+}
+
+enum CampaignStatus {
+  CAMPAIGN_STATUS_UNSPECIFIED = 0; // 기본값
+  CAMPAIGN_STATUS_WAITING = 1;     // 대기중
+  CAMPAIGN_STATUS_ACTIVE = 2;      // 진행중
+  CAMPAIGN_STATUS_COMPLETED = 3;   // 완료
+}
+
+message Campaign {
+  string campaign_id = 1;        // 캠페인 고유 ID
+  string name = 2;               // 캠페인 이름
+  int64 start_time = 3;          // 시작 시간 (Unix timestamp)
+  int32 total_quantity = 4;      // 총 발급 가능 수량
+  int32 issued_quantity = 5;     // 현재 발급된 수량
+  CampaignStatus status = 6;     // 캠페인 상태
+  int64 created_at = 7;          // 캠페인 생성 시간
+}
+
+message Coupon {
+  string coupon_code = 1;        // 쿠폰 고유 코드 (최대 10자)
+  string campaign_id = 2;        // 소속 캠페인 ID
+  int64 issued_at = 3;           // 발급 시간
+  string issued_to = 4;          // 발급 대상 (사용자 ID)
+}
+
+
+message CreateCampaignRequest {
+  string name = 1;               // 캠페인 이름
+  int64 start_time = 2;          // 쿠폰 발급 시작 시간
+  int32 total_quantity = 3;      // 총 발급할 쿠폰 수량
+}
+
+message CreateCampaignResponse {
+  Campaign campaign = 1;         // 생성된 캠페인 정보
+  string message = 2;            // 성공/실패 메시지
+}
+
+
+message GetCampaignRequest {
+  string campaign_id = 1;        // 조회할 캠페인 ID
+}
+
+message GetCampaignResponse {
+  Campaign campaign = 1;         // 캠페인 기본 정보
+  repeated Coupon issued_coupons = 2; // 발급된 쿠폰들 (repeated = 배열)
+  string message = 3;            // 성공/실패 메시지
+}
+
+
+message IssueCouponRequest {
+  string campaign_id = 1;        // 대상 캠페인 ID
+  string user_id = 2;            // 요청자 ID
+}
+
+message IssueCouponResponse {
+  bool success = 1;              // 발급 성공 여부
+  Coupon coupon = 2;             // 발급된 쿠폰 (성공 시에만)
+  string message = 3;            // 성공/실패 메시지
+  string error_code = 4;         // 에러 코드 (실패 시)
+}
