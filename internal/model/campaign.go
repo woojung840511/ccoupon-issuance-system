@@ -23,7 +23,7 @@ func NewCampaign(pbCampaign *pb.Campaign) *Campaign {
 
 func (c *Campaign) CanIssueCoupon() bool {
 	c.UpdateStatusIfNeeded()
-	return c.Status != pb.CampaignStatus_ACTIVE && c.IssuedQuantity < c.TotalQuantity
+	return c.Status == pb.CampaignStatus_ACTIVE && c.IssuedQuantity < c.TotalQuantity
 }
 
 func (c *Campaign) UpdateStatusIfNeeded() {
