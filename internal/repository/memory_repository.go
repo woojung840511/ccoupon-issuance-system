@@ -2,26 +2,15 @@ package repository
 
 import (
 	"context"
+	"coupon-issuance-system/internal/model"
+	"errors"
 	"fmt"
-	"log"
+	//"log"
 	"sync"
 	"time"
 
 	"coupon-issuance-system/gen/coupon"
 )
-
-func updateCampaignStatus(campaign *coupon.Campaign) {
-	now := time.Now().Unix()
-
-	if campaign.Status == coupon.CampaignStatus_WAITING && now >= campaign.StartTime {
-		campaign.Status = coupon.CampaignStatus_ACTIVE
-		log.Printf("캠페인 %s 자동 시작됨", campaign.CampaignId)
-
-	} else if campaign.Status == coupon.CampaignStatus_ACTIVE && campaign.IssuedQuantity >= campaign.TotalQuantity {
-		campaign.Status = coupon.CampaignStatus_COMPLETED
-		log.Printf("캠페인 %s 자동 완료됨", campaign.CampaignId)
-	}
-}
 
 type MemoryCampaignRepository struct {
 	campaigns map[string]*coupon.Campaign
@@ -51,7 +40,7 @@ func (r *MemoryCampaignRepository) GetByID(ctx context.Context, id string) (*cou
 		return nil, fmt.Errorf("해당 캠페인이 존재하지 않습니다. id: %s", id)
 	}
 
-	updateCampaignStatus(campaign) // 효율을 위해 Lazy 하게 평가
+	model.NewCampaign(campaign).UpdateStatusIfNeeded() // 상태 업데이트 (lazy evaluation)
 
 	return campaign, nil
 }
@@ -86,9 +75,9 @@ type MemoryCouponRepository struct {
 	coupons           map[string][]*coupon.Coupon // campaignID -> coupons
 	couponsByCode     map[string]*coupon.Coupon   // couponCode -> coupon , 중복이지만 인덱싱 기능
 	campaigns         map[string]*coupon.Campaign // campaignRepo.campaigns
-	mutex             sync.RWMutex
-	campaignMutexes   map[string]*sync.Mutex
-	campaignMutexLock sync.Mutex
+	mutex             sync.RWMutex                // 전체 데이터 뮤텍스
+	campaignMutexes   map[string]*sync.Mutex      // 캠페인별 뮤텍스 맵
+	campaignMutexLock sync.Mutex                  // 캠페인 뮤텍스 맵 보호
 }
 
 func NewMemoryCouponRepository(campaignRepo *MemoryCampaignRepository) *MemoryCouponRepository {
@@ -136,72 +125,58 @@ func (r *MemoryCouponRepository) GetByCode(ctx context.Context, code string) (*c
 
 func (r *MemoryCouponRepository) IssueCouponAtomic(ctx context.Context, campaignID, userID, couponCode string) (*coupon.Coupon, bool, error) {
 
-	// 1. 캠페인별 뮤텍스 가져오기, 없으면 생성
-	r.campaignMutexLock.Lock()
-	campaignMutex, exists := r.campaignMutexes[campaignID]
-	if !exists {
-		campaignMutex = &sync.Mutex{}
-		r.campaignMutexes[campaignID] = campaignMutex
-	}
-	r.campaignMutexLock.Unlock()
-
-	// 2. 해당 캠페인에 대한 독점적 접근
+	// 캠페인별 뮤텍스 가져오기
+	campaignMutex := r.getCampaignMutex(campaignID)
 	campaignMutex.Lock()
 	defer campaignMutex.Unlock()
 
-	// 3. 읽기 잠금으로 캠페인 정보 확인
+	// 읽기 잠금으로 캠페인 정보 확인
 	r.mutex.RLock()
-	campaign, exists := r.campaigns[campaignID]
+	pbCampaign, exists := r.campaigns[campaignID]
 	if !exists {
 		r.mutex.RUnlock()
 		return nil, false, fmt.Errorf("해당 캠페인이 존재하지 않습니다. id: %s", campaignID)
 	}
+	domainCampaign := model.NewCampaign(pbCampaign)
 
-	// 캠페인 상태 업데이트 // todo -> DDD 로 변경해보기
-	updateCampaignStatus(campaign) // lazy evaluation..
-
-	// 4. 발급 가능 여부 확인 // todo -> DDD 로 변경해보기
-	if campaign.IssuedQuantity >= campaign.TotalQuantity {
+	// 쿠폰 발급 가능 여부 확인
+	if !domainCampaign.CanIssueCoupon() {
 		r.mutex.RUnlock()
-		return nil, false, nil // 품절
+		return nil, false, fmt.Errorf("해당 캠페인에서 쿠폰을 발급할 수 없습니다. id: %s", campaignID)
 	}
 
-	if campaign.Status != coupon.CampaignStatus_ACTIVE {
-		r.mutex.RUnlock()
-		return nil, false, nil // 캠페인이 활성 상태가 아님
-	}
-	r.mutex.RUnlock()
-
-	// 5. 쓰기 잠금으로 실제 발급 처리
+	// 쓰기 잠금으로 실제 발급 처리
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	// 다시 한 번 확인
-	// 여기서 확인하지 않았을 경우 일어날 수 있는 위험 :
-	// 발급 가능여부까지 확인하고 쓰기 락을 대기하던 스레드가 다시 락을 획득한 시점에
-	// 다른 스레드가 발급 가능 수량을 모두 소진한 상황임을 인지하지 못할 수 있음
-	campaign = r.campaigns[campaignID]
-	if campaign.IssuedQuantity >= campaign.TotalQuantity {
-		return nil, false, nil // 품절
+	// 쿠폰 생성 및 저장
+	if err := domainCampaign.IssueCoupon(); err != nil {
+		if errors.Is(err, model.ErrSoldOut) || errors.Is(err, model.ErrNotActive) || errors.Is(err, model.ErrCannotIssue) {
+			return nil, false, nil
+		}
+		return nil, false, err
 	}
-
-	// 6. 쿠폰 생성 및 저장 // todo -> DDD 로 변경해보기
 	newCoupon := &coupon.Coupon{
 		CouponCode: couponCode,
 		CampaignId: campaignID,
 		IssuedAt:   time.Now().Unix(),
 		IssuedTo:   userID,
 	}
-
-	// 7. 원자적 업데이트
 	r.coupons[campaignID] = append(r.coupons[campaignID], newCoupon)
 	r.couponsByCode[couponCode] = newCoupon
-	campaign.IssuedQuantity++
-
-	// 8. 캠페인 완료 상태 확인
-	if campaign.IssuedQuantity >= campaign.TotalQuantity {
-		campaign.Status = coupon.CampaignStatus_COMPLETED
-	}
 
 	return newCoupon, true, nil
+}
+
+func (r *MemoryCouponRepository) getCampaignMutex(campaignID string) *sync.Mutex {
+	r.campaignMutexLock.Lock()
+
+	campaignMutex, exists := r.campaignMutexes[campaignID]
+	if !exists {
+		campaignMutex = &sync.Mutex{} // 없으면 새로 생성
+		r.campaignMutexes[campaignID] = campaignMutex
+	}
+
+	r.campaignMutexLock.Unlock()
+	return campaignMutex
 }
