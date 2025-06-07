@@ -90,5 +90,4 @@ message IssueCouponResponse {
   bool success = 1;              // 발급 성공 여부
   Coupon coupon = 2;             // 발급된 쿠폰 (성공 시에만)
   string message = 3;            // 성공/실패 메시지
-  string error_code = 4;         // 에러 코드 (실패 시)
 }

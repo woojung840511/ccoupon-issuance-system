@@ -511,10 +511,9 @@ func (x *IssueCouponRequest) GetUserId() string {
 
 type IssueCouponResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`                     // 발급 성공 여부
-	Coupon        *Coupon                `protobuf:"bytes,2,opt,name=coupon,proto3" json:"coupon,omitempty"`                        // 발급된 쿠폰 (성공 시에만)
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`                      // 성공/실패 메시지
-	ErrorCode     string                 `protobuf:"bytes,4,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"` // 에러 코드 (실패 시)
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"` // 발급 성공 여부
+	Coupon        *Coupon                `protobuf:"bytes,2,opt,name=coupon,proto3" json:"coupon,omitempty"`    // 발급된 쿠폰 (성공 시에만)
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`  // 성공/실패 메시지
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -570,13 +569,6 @@ func (x *IssueCouponResponse) GetMessage() string {
 	return ""
 }
 
-func (x *IssueCouponResponse) GetErrorCode() string {
-	if x != nil {
-		return x.ErrorCode
-	}
-	return ""
-}
-
 var File_proto_coupon_proto protoreflect.FileDescriptor
 
 const file_proto_coupon_proto_rawDesc = "" +
@@ -618,13 +610,11 @@ const file_proto_coupon_proto_rawDesc = "" +
 	"\x12IssueCouponRequest\x12\x1f\n" +
 	"\vcampaign_id\x18\x01 \x01(\tR\n" +
 	"campaignId\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\"\x90\x01\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"q\n" +
 	"\x13IssueCouponResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12&\n" +
 	"\x06coupon\x18\x02 \x01(\v2\x0e.coupon.CouponR\x06coupon\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x12\x1d\n" +
-	"\n" +
-	"error_code\x18\x04 \x01(\tR\terrorCode*I\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage*I\n" +
 	"\x0eCampaignStatus\x12\x0f\n" +
 	"\vUNSPECIFIED\x10\x00\x12\v\n" +
 	"\aWAITING\x10\x01\x12\n" +

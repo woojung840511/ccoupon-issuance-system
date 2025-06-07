@@ -63,3 +63,7 @@
 
 - 데이터 기반 저장소(memory repository) 완료
 - memory repository 비즈니스 규칙을 DDD 를 적용해 도메인 모델로 옮겨보기
+- memory repository 기본 테스트 케이스 작성
+
+- service 레이어 구현
+  - 
