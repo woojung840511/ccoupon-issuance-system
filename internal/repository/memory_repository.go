@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"coupon-issuance-system/internal/model"
-	"errors"
 	"fmt"
 	//"log"
 	"sync"
@@ -123,7 +122,7 @@ func (r *MemoryCouponRepository) GetByCode(ctx context.Context, code string) (*c
 	return cp, nil
 }
 
-func (r *MemoryCouponRepository) IssueCouponAtomic(ctx context.Context, campaignID, userID, couponCode string) (*coupon.Coupon, bool, error) {
+func (r *MemoryCouponRepository) IssueCoupon(ctx context.Context, campaignID, userID, couponCode string) (*coupon.Coupon, string, error) {
 
 	// 캠페인별 뮤텍스 가져오기
 	campaignMutex := r.getCampaignMutex(campaignID)
@@ -135,14 +134,15 @@ func (r *MemoryCouponRepository) IssueCouponAtomic(ctx context.Context, campaign
 	pbCampaign, exists := r.campaigns[campaignID]
 	if !exists {
 		r.mutex.RUnlock()
-		return nil, false, fmt.Errorf("해당 캠페인이 존재하지 않습니다. id: %s", campaignID)
+		return nil, "존재하지 않는 캠페인입니다", nil
 	}
 	domainCampaign := model.NewCampaign(pbCampaign)
 
 	// 쿠폰 발급 가능 여부 확인
-	if !domainCampaign.CanIssueCoupon() {
+	canIssue, failMsg := domainCampaign.CanIssueCoupon()
+	if !canIssue {
 		r.mutex.RUnlock()
-		return nil, false, fmt.Errorf("해당 캠페인에서 쿠폰을 발급할 수 없습니다. id: %s", campaignID)
+		return nil, failMsg, nil
 	}
 	r.mutex.RUnlock()
 
@@ -151,12 +151,11 @@ func (r *MemoryCouponRepository) IssueCouponAtomic(ctx context.Context, campaign
 	defer r.mutex.Unlock()
 
 	// 쿠폰 생성 및 저장
-	if err := domainCampaign.IssueCoupon(); err != nil {
-		if errors.Is(err, model.ErrSoldOut) || errors.Is(err, model.ErrNotActive) || errors.Is(err, model.ErrCannotIssue) {
-			return nil, false, nil
-		}
-		return nil, false, err
+	success, failMsg := domainCampaign.IssueCoupon()
+	if !success {
+		return nil, failMsg, nil
 	}
+
 	newCoupon := &coupon.Coupon{
 		CouponCode: couponCode,
 		CampaignId: campaignID,
@@ -166,7 +165,7 @@ func (r *MemoryCouponRepository) IssueCouponAtomic(ctx context.Context, campaign
 	r.coupons[campaignID] = append(r.coupons[campaignID], newCoupon)
 	r.couponsByCode[couponCode] = newCoupon
 
-	return newCoupon, true, nil
+	return newCoupon, "", nil
 }
 
 func (r *MemoryCouponRepository) getCampaignMutex(campaignID string) *sync.Mutex {

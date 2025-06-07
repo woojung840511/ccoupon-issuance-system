@@ -63,9 +63,9 @@ func TestAtomicCouponIssue(t *testing.T) {
 			userID := fmt.Sprintf("user-%d", index)
 			couponCode := fmt.Sprintf("CODE%d", index)
 
-			_, success, _ := couponRepo.IssueCoupon(ctx, "t2", userID, couponCode)
+			issuedCoupon, _, _ := couponRepo.IssueCoupon(ctx, "t2", userID, couponCode)
 
-			if success {
+			if issuedCoupon != nil {
 				mu.Lock() // 다른 고루틴 대기
 				successCount++
 				mu.Unlock()

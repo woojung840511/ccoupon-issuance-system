@@ -21,9 +21,26 @@ func NewCampaign(pbCampaign *pb.Campaign) *Campaign {
 	return &Campaign{Campaign: pbCampaign}
 }
 
-func (c *Campaign) CanIssueCoupon() bool {
+func (c *Campaign) CanIssueCoupon() (bool, string) {
 	c.UpdateStatusIfNeeded()
-	return c.Status == pb.CampaignStatus_ACTIVE && c.IssuedQuantity < c.TotalQuantity
+
+	switch c.Status {
+	case pb.CampaignStatus_UNSPECIFIED:
+		return false, "캠페인이 아직 시작되지 않았습니다"
+
+	case pb.CampaignStatus_WAITING:
+		return false, "캠페인이 아직 활성상태가 아닙니다"
+
+	case pb.CampaignStatus_ACTIVE:
+		if c.IssuedQuantity >= c.TotalQuantity {
+			return false, "쿠폰이 모두 소진되었습니다"
+		}
+
+	case pb.CampaignStatus_COMPLETED:
+		return false, "캠페인이 종료되었습니다"
+	}
+
+	return true, ""
 }
 
 func (c *Campaign) UpdateStatusIfNeeded() {
@@ -42,20 +59,15 @@ func (c *Campaign) UpdateStatusIfNeeded() {
 	}
 }
 
-func (c *Campaign) IssueCoupon() error {
-	if !c.CanIssueCoupon() { // 더블 체크
-		if c.IssuedQuantity >= c.TotalQuantity {
-			return ErrSoldOut
-		}
-		if c.Status != pb.CampaignStatus_ACTIVE {
-			return ErrNotActive
-		}
-		return ErrCannotIssue
+func (c *Campaign) IssueCoupon() (bool, string) {
+	canIssue, failMsg := c.CanIssueCoupon()
+	if !canIssue {
+		return false, failMsg
 	}
 
 	c.IssuedQuantity++
 	log.Printf("쿠폰이 발급되었습니다. 현재 발급된 쿠폰 수량: %d", c.IssuedQuantity)
 
 	c.UpdateStatusIfNeeded()
-	return nil
+	return true, ""
 }
