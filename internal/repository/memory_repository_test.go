@@ -53,24 +53,33 @@ func TestAtomicCouponIssue(t *testing.T) {
 	var mu sync.Mutex
 
 	for i := 0; i < numRequests; i++ {
-		wg.Add(1) // 고루틴 수 증가
+		wg.Add(1) // 내부 카운터를 1 증가 (대기할 고루틴 수 +1)
 		go func(index int) {
-			defer wg.Done() // 고루틴 완료 시 wg.Done() 호출
+			/*
+				defer를 사용하는 이유 메모: 함수가 정상 종료되든, 에러로 종료되든 반드시 wg.Done()이 호출되도록 보장
+			*/
+			defer wg.Done() // 내부 카운터를 1 감소 (완료된 고루틴 수 +1)
 
 			userID := fmt.Sprintf("user-%d", index)
 			couponCode := fmt.Sprintf("CODE%d", index)
 
-			_, success, _ := couponRepo.IssueCouponAtomic(ctx, "t2", userID, couponCode)
+			_, success, _ := couponRepo.IssueCoupon(ctx, "t2", userID, couponCode)
 
 			if success {
 				mu.Lock() // 다른 고루틴 대기
 				successCount++
 				mu.Unlock()
 			}
-		}(i)
+		}(i) // 각 고루틴마다 i의 복사본을 전달받아 독립적인 값을 가짐
+
+		/*
+			(i)의 역할 - 클로저 문제 해결
+			각 고루틴이 독립적으로 index 값을 갖도록 보장
+			이렇게 하지 않으면 모든 고루틴이 동일한 i 값을 참조하게 되어 마지막 값인 19만 사용하게 됨
+		*/
 	}
 
-	wg.Wait() // 모든 고루틴이 완료될 때까지 대기
+	wg.Wait() // 카운터가 0이 될 때까지 대기
 
 	// 성공한 쿠폰 수 확인
 	if successCount != 5 {
