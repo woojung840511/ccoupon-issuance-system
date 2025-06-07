@@ -144,6 +144,7 @@ func (r *MemoryCouponRepository) IssueCouponAtomic(ctx context.Context, campaign
 		r.mutex.RUnlock()
 		return nil, false, fmt.Errorf("해당 캠페인에서 쿠폰을 발급할 수 없습니다. id: %s", campaignID)
 	}
+	r.mutex.RUnlock()
 
 	// 쓰기 잠금으로 실제 발급 처리
 	r.mutex.Lock()
