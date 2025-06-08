@@ -148,7 +148,7 @@ func (s *CouponService) IssueCoupon(
 		}, err
 	}
 
-	if issuedCoupon != nil {
+	if issuedCoupon == nil {
 		return &coupon.IssueCouponResponse{
 			Success: false,
 			Message: failMsg,
