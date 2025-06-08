@@ -256,6 +256,13 @@ Go 언어가 처음이라 Claude를 적극 활용했습니다:
 - **구현 검증**: 작성된 코드가 요구사항을 만족하는지 테스트로 확인 
 - 완전히 독립적인 설계는 아니었지만, **AI의 도움을 받아 Go 생태계와 동시성 패턴을 빠르게 학습**하고 **요구사항에 맞는 시스템을 구현**할 수 있었습니다.
 
+### 학습 과정 기록
+*과제 진행 3일간 학습한 개념들을 체계적으로 정리한 노션 페이지*
+- Go 언어가 처음이었기에 각 개념을 하나씩 학습하며 정리했습니다.
+- 단순한 문법 암기가 아닌, 왜 이런 설계가 필요한지부터 실제 구현에서의 트레이드오프까지 깊이 있게 탐구했습니다.
+![학습과정](./images/learning_process.jpeg)
+
+
 ## 참고자료
 - [Go Concurrency Patterns](https://blog.golang.org/concurrency-patterns)
 - [ConnectRPC Documentation](https://connectrpc.com/docs/go/getting-started)
