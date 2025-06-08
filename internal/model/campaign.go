@@ -2,7 +2,6 @@ package model
 
 import (
 	pb "coupon-issuance-system/gen/coupon"
-	"errors"
 	"log"
 	"time"
 )
@@ -10,12 +9,6 @@ import (
 type Campaign struct {
 	*pb.Campaign // 임베딩할 때 필드명을 명시하지 않으면, Go는 타입명을 필드명으로 자동 사용
 }
-
-var (
-	ErrSoldOut     = errors.New("SOLD_OUT")
-	ErrNotActive   = errors.New("CAMPAIGN_NOT_ACTIVE")
-	ErrCannotIssue = errors.New("CANNOT_ISSUE_COUPON")
-)
 
 func NewCampaign(pbCampaign *pb.Campaign) *Campaign {
 	return &Campaign{Campaign: pbCampaign}
