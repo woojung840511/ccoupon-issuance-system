@@ -28,7 +28,10 @@ func NewCouponService(
 	}
 }
 
-func (s *CouponService) CreateCampaign(ctx context.Context, req *coupon.CreateCampaignRequest) (*coupon.CreateCampaignResponse, error) {
+func (s *CouponService) CreateCampaign(
+	ctx context.Context,
+	req *coupon.CreateCampaignRequest,
+) (*coupon.CreateCampaignResponse, error) {
 	// 입력 검증
 	validation := validateCreateCampaignRequest(req)
 	if !validation.IsValid {
@@ -73,7 +76,10 @@ func (s *CouponService) CreateCampaign(ctx context.Context, req *coupon.CreateCa
 	}, nil
 }
 
-func (s *CouponService) GetCampaign(ctx context.Context, req *coupon.GetCampaignRequest) (*coupon.GetCampaignResponse, error) {
+func (s *CouponService) GetCampaign(
+	ctx context.Context,
+	req *coupon.GetCampaignRequest,
+) (*coupon.GetCampaignResponse, error) {
 	// 입력 검증
 	validation := validateGetCampaignRequest(req)
 	if !validation.IsValid {
@@ -108,7 +114,11 @@ func (s *CouponService) GetCampaign(ctx context.Context, req *coupon.GetCampaign
 	}, nil
 }
 
-func (s *CouponService) IssueCoupon(ctx context.Context, req *coupon.IssueCouponRequest) (*coupon.IssueCouponResponse, error) {
+func (s *CouponService) IssueCoupon(
+	ctx context.Context,
+	req *coupon.IssueCouponRequest,
+) (*coupon.IssueCouponResponse, error) {
+
 	// 입력 검증
 	validation := validateIssueCouponRequest(req)
 	if !validation.IsValid {
@@ -156,7 +166,10 @@ func (s *CouponService) IssueCoupon(ctx context.Context, req *coupon.IssueCoupon
 	}, nil
 }
 
-func (s *CouponService) generateUniqueCouponCode(ctx context.Context, campaignID string) (string, error) {
+func (s *CouponService) generateUniqueCouponCode(
+	ctx context.Context,
+	campaignID string,
+) (string, error) {
 
 	// 캠페인 조회
 	campaign, err := s.campaignRepo.GetByID(ctx, campaignID)

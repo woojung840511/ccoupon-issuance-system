@@ -98,7 +98,11 @@ func (r *MemoryCouponRepository) Save(ctx context.Context, coupon *coupon.Coupon
 	return nil
 }
 
-func (r *MemoryCouponRepository) GetByCampaignID(ctx context.Context, campaignID string) ([]*coupon.Coupon, error) {
+func (r *MemoryCouponRepository) GetByCampaignID(
+	ctx context.Context,
+	campaignID string,
+) ([]*coupon.Coupon, error) {
+
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
@@ -122,7 +126,12 @@ func (r *MemoryCouponRepository) GetByCode(ctx context.Context, code string) (*c
 	return cp, nil
 }
 
-func (r *MemoryCouponRepository) IssueCoupon(ctx context.Context, campaignID, userID, couponCode string) (*coupon.Coupon, string, error) {
+func (r *MemoryCouponRepository) IssueCoupon(
+	ctx context.Context,
+	campaignID,
+	userID,
+	couponCode string,
+) (*coupon.Coupon, string, error) {
 
 	// 캠페인별 뮤텍스 가져오기
 	campaignMutex := r.getCampaignMutex(campaignID)
