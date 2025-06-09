@@ -138,11 +138,8 @@ func (r *MemoryCouponRepository) IssueCoupon(
 	campaignMutex.Lock()
 	defer campaignMutex.Unlock()
 
-	// 읽기 잠금으로 캠페인 정보 확인
-	r.mutex.RLock()
 	pbCampaign, exists := r.campaigns[campaignID]
 	if !exists {
-		r.mutex.RUnlock()
 		return nil, "존재하지 않는 캠페인입니다", nil
 	}
 	domainCampaign := model.NewCampaign(pbCampaign)
@@ -150,14 +147,8 @@ func (r *MemoryCouponRepository) IssueCoupon(
 	// 쿠폰 발급 가능 여부 확인
 	canIssue, failMsg := domainCampaign.CanIssueCoupon()
 	if !canIssue {
-		r.mutex.RUnlock()
 		return nil, failMsg, nil
 	}
-	r.mutex.RUnlock()
-
-	// 쓰기 잠금으로 실제 발급 처리
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
 
 	// 쿠폰 생성 및 저장
 	success, failMsg := domainCampaign.IssueCoupon()
